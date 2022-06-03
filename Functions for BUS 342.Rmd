@@ -1,0 +1,184 @@
+---
+title: "Functions for BUS342 Package"
+author: "Mrinal Lakhotia (Anmol)"
+date: "6/1/2022"
+output: html_document
+---
+
+#libraries
+
+```{r}
+library(tidyverse)
+```
+
+
+
+#PAGE 1
+
+```{r}
+PV <- function(fv, years, interest_rate){
+  
+  pv=fv/((1+interest_rate)^years)
+  
+  return(pv)
+  
+}
+
+PV(2,1,1)==2/((1+1)^1) #equals $1
+PV(10,5,.1)==10/((1+.1)^5) #equals $6.209213
+
+```
+
+```{r}
+FV <- function(pv, years, interest_rate){
+  
+  fv=pv*((1+interest_rate)^years)
+  
+  return(fv)
+  
+}
+
+FV(1, 1, 1) == 1*((1+1)^1) #equals $2
+FV(6.209213, 5, .1) == 6.209213*((1+.1)^5) #equals $6.209213
+
+```
+
+#PAGE 2
+
+```{r}
+PERPETIUTY_PV <- function(payment, discount_rate, growth_rate){
+  
+  pv = payment/(discount_rate - growth_rate)
+  
+  return(pv)
+  
+}
+
+PERPETIUTY_PV(1, .1, .08) == 1/(.1-.08) #equals $50
+PERPETIUTY_PV(100, .05, .10) == 100/(.05-.10) #equals -$2,000
+```
+
+```{r}
+PERPETIUTY_R <- function(payment, PV, growth_rate){
+  
+  interest_rate = payment/PV + growth_rate
+  
+  return(interest_rate)
+  
+}
+
+PERPETIUTY_R(1, 50, .08) == 1/50+.08 #interest_rate = .1
+PERPETIUTY_R(100, -2000, .10) == 100/-2000 +.10 #interest_rate = .05
+```
+
+#Page 3
+
+```{r}
+APR_TO_EAR <- function(APR, compounding_period){
+  
+  #APR is the annual nominal rate of interest
+  EAR = (1 + APR/compounding_period)^compounding_period - 1  
+  
+  return(EAR)
+  
+}
+
+APR_TO_EAR(.1, 12) == (1 + .1/12)^12 - 1 #EAR is .1047131
+APR_TO_EAR(.1, 365) == (1 + .1/365)^365 - 1 #EAR is .1051558
+```
+
+```{r}
+EAR_to_APR <- function(EAR, compounding_period){
+  
+  #APR is the annual nominal rate of interest
+  APR = compounding_period*(((1 + EAR)^(1/compounding_period)) - 1)  
+  
+  return(APR)
+  
+}
+
+EAR_to_APR(.1047131, 12) == 12*((1+.1047131)^(1/12)-1) #APR is .1
+EAR_to_APR(.1051558, 365) == 365*((1+.1051558)^(1/365)-1) #APR is .1
+```
+
+#PAGE 4
+
+```{r}
+BIG_UGLY_PV <- function(payment, compounding_period, interest_rate, growth_rate, annuity=F){
+  
+  pv = (payment/(interest_rate-growth_rate))*(1-((1+growth_rate)/(1+interest_rate))^compounding_period)
+  
+  if(annuity==T){
+    pv_annuity = pv*(1+interest_rate)
+    return(pv_annuity)
+  }
+  
+  return(pv)
+  
+}
+
+BIG_UGLY_PV(1000, 30, .06, .03) == (1000/(.06-.03))*(1-((1+.03)/(1+.06))^30) #PV = 19246.3
+BIG_UGLY_PV(1000, 30, .06, .03, annuity = T) == ((1000/(.06-.03))*(1-((1+.03)/(1+.06))^30))*(1+.06) #PV = 20401.08
+```
+
+```{r}
+BIG_UGLY_PAYMENT <- function(PV, compound_period, interest_rate, growth_rate, annuity=F){
+  payment = (PV*(interest_rate-growth_rate))/(1-((1+growth_rate)/(1+interest_rate))^compound_period)
+  
+  if(annuity==T){
+    payment_annuity = payment/(1+interest_rate)
+    return(payment_annuity)
+  }
+  
+  return(payment)
+  
+}
+
+BIG_UGLY_PAYMENT(19246.3, 30, .06, .03) == (19246.3*(.06-.03))/(1-((1+.03)/(1+.06))^30) #Payment = 1,000
+BIG_UGLY_PAYMENT(20401.08, 30, .06, .03, annuity = T) == (20401.08*(.06-.03))/(1-((1+.03)/(1+.06))^30)/(1+.06)  #Payment = 1000
+```
+
+#Page 5
+
+```{r}
+NPV <- function(values, interest_rate){
+  pv = numeric(length(values))
+  i = 1
+  for(i in length(values)){
+    pv[i] <- values[i]/(1+interest_rate)^(i)
+    print(pv)
+    i <- i + 1
+  }
+  print(pv)
+  sum(pv)
+}
+  
+NPV(c(1, 2, 3), .1)  
+
+```
+
+```{r}
+NPV2 <- function(cashflows, interest_rate){
+  len = as.numeric(length(cashflows))
+  time = 1:len
+  dat <- data.frame(time, cashflows)
+  dat <- dat %>% 
+    mutate(cashflows, pv = cashflows/(1+interest_rate)^time)
+  pv = sum(dat$pv)
+  return(pv)
+}
+  
+NPV2(c(1, 2, 3), .1) #PV=4.815928
+```
+
+```{r}
+cashflows = c(1, 2, 3)
+interest_rate = .1
+len = as.numeric(length(cashflows))
+time = 1:len
+dat <- data.frame(time, cashflows)
+dat <- dat %>% 
+mutate(cashflows, pv = cashflows/(1+interest_rate)^time)
+pv = sum(dat$pv)
+```
+
