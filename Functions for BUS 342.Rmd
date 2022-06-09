@@ -16,9 +16,9 @@ library(tidyverse)
 #PAGE 1
 
 ```{r}
-PV <- function(fv, years, interest_rate){
+PV <- function(fv, periods, interest_rate){
   
-  pv=fv/((1+interest_rate)^years)
+  pv=fv/((1+interest_rate)^periods)
   
   return(pv)
   
@@ -30,16 +30,16 @@ PV(10,5,.1)==10/((1+.1)^5) #equals $6.209213
 ```
 
 ```{r}
-FV <- function(pv, years, interest_rate){
+FV <- function(pv, periods, interest_rate){
   
-  fv=pv*((1+interest_rate)^years)
+  fv=pv*((1+interest_rate)^periods)
   
   return(fv)
   
 }
 
 FV(1, 1, 1) == 1*((1+1)^1) #equals $2
-FV(6.209213, 5, .1) == 6.209213*((1+.1)^5) #equals $6.209213
+FV(6.209213, 5, .1) == 6.209213*((1+.1)^5) #equals $10
 
 ```
 
@@ -141,44 +141,38 @@ BIG_UGLY_PAYMENT(20401.08, 30, .06, .03, annuity = T) == (20401.08*(.06-.03))/(1
 #Page 5
 
 ```{r}
-NPV <- function(values, interest_rate){
-  pv = numeric(length(values))
-  i = 1
-  for(i in length(values)){
-    pv[i] <- values[i]/(1+interest_rate)^(i)
-    print(pv)
-    i <- i + 1
-  }
-  print(pv)
-  sum(pv)
-}
-  
-NPV(c(1, 2, 3), .1)  
-
-```
-
-```{r}
-NPV2 <- function(cashflows, interest_rate){
+NPV <- function(cashflows, interest_rate){
   len = as.numeric(length(cashflows))
   time = 1:len
   dat <- data.frame(time, cashflows)
   dat <- dat %>% 
-    mutate(cashflows, pv = cashflows/(1+interest_rate)^time)
+    mutate(cashflows, pv = cashflows/(1+interest_rate)^(time-1))
   pv = sum(dat$pv)
   return(pv)
 }
   
-NPV2(c(1, 2, 3), .1) #PV=4.815928
+NPV(c(0, 1, 2, 3, 0), .1) #PV=4.815928
 ```
 
 ```{r}
-cashflows = c(1, 2, 3)
-interest_rate = .1
-len = as.numeric(length(cashflows))
-time = 1:len
-dat <- data.frame(time, cashflows)
-dat <- dat %>% 
-mutate(cashflows, pv = cashflows/(1+interest_rate)^time)
-pv = sum(dat$pv)
+IRR <- function(cashflows){
+  len = as.numeric(length(cashflows))
+  time = 1:len
+  
+  cost = cashflows[1]
+  cashflows[1] = 0
+  dat <- data.frame(time, cashflows)
+  interest_rate = 0
+  pv = 0
+  while(pv>=0){    
+      pv = sum(dat$cashflows/(1+interest_rate)^(time - 1)) - cost
+    interest_rate <- interest_rate + .0001 
+  }
+
+  return(interest_rate-.0001)
+}
+
+IRR(c(1, 1.1))
+IRR(c(10, 0, 10, 10))
 ```
 
